@@ -237,7 +237,22 @@ Prisma needs `DATABASE_URL` while the image is **built** (`prisma generate` in `
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | from Google Cloud Console |
 | `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | from GitHub OAuth App |
 
-You do **not** need `CLIENT_URL` or callback URL env vars: the app uses Render’s `RENDER_EXTERNAL_URL` automatically.
+You do **not** need `CLIENT_URL` or callback URL env vars if you use the default `*.onrender.com` URL: the app uses Render’s `RENDER_EXTERNAL_URL`.
+
+If you use a **custom domain** (for example `https://spendscope.macmonsters.com`), Google’s redirect URI must match the host in the browser. Set these on the Render service (runtime env, then restart):
+
+```
+CLIENT_URL=https://spendscope.macmonsters.com
+API_PUBLIC_URL=https://spendscope.macmonsters.com
+GOOGLE_CALLBACK_URL=https://spendscope.macmonsters.com/api/auth/google/callback
+```
+
+In Google Auth Platform → Clients, Authorized JavaScript origins and redirect URIs must be **exact** (https, no trailing slash):
+
+- Origin: `https://spendscope.macmonsters.com`
+- Redirect: `https://spendscope.macmonsters.com/api/auth/google/callback`
+
+The Google error page shows **“The redirect URI in the request”**. That value is what the app sent; it must appear in the client’s redirect URI list. A custom domain in Google Console will not match if the app still sends `https://….onrender.com/api/auth/google/callback`.
 
 6. After the first deploy, in Google and GitHub OAuth settings set:
 

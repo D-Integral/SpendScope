@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import passport from './passport.js';
 import { config } from '../config.js';
+import { githubCallbackUrl, googleCallbackUrl, publicOrigin } from '../lib/publicUrl.js';
 import { requireAuth } from '../middleware/auth.js';
 import { publicUser, upsertUserFromProfile } from '../services/userService.js';
 
@@ -21,32 +22,42 @@ router.get('/google', (req, res, next) => {
   if (!config.google.enabled) {
     return res.status(503).json({ error: 'Google SSO is not configured.' });
   }
-  passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+  passport.authenticate('google', {
+    scope: ['profile', 'email'],
+    callbackURL: googleCallbackUrl(req),
+  } as any)(req, res, next);
 });
 
-router.get(
-  '/google/callback',
+router.get('/google/callback', (req, res, next) => {
   passport.authenticate('google', {
-    failureRedirect: `${config.clientUrl}/login?error=google`,
-  }),
-  (_req, res) => res.redirect(config.clientUrl)
-);
+    callbackURL: googleCallbackUrl(req),
+    failureRedirect: `${publicOrigin(req)}/login?error=google`,
+  } as any)(req, res, (err: unknown) => {
+    if (err) return next(err);
+    res.redirect(publicOrigin(req));
+  });
+});
 
 // --- GitHub ---
 router.get('/github', (req, res, next) => {
   if (!config.github.enabled) {
     return res.status(503).json({ error: 'GitHub SSO is not configured.' });
   }
-  passport.authenticate('github', { scope: ['user:email'] })(req, res, next);
+  passport.authenticate('github', {
+    scope: ['user:email'],
+    callbackURL: githubCallbackUrl(req),
+  } as any)(req, res, next);
 });
 
-router.get(
-  '/github/callback',
+router.get('/github/callback', (req, res, next) => {
   passport.authenticate('github', {
-    failureRedirect: `${config.clientUrl}/login?error=github`,
-  }),
-  (_req, res) => res.redirect(config.clientUrl)
-);
+    callbackURL: githubCallbackUrl(req),
+    failureRedirect: `${publicOrigin(req)}/login?error=github`,
+  } as any)(req, res, (err: unknown) => {
+    if (err) return next(err);
+    res.redirect(publicOrigin(req));
+  });
+});
 
 // --- Session helpers ---
 router.get('/me', (req, res) => {
