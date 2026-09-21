@@ -14,6 +14,7 @@ const clientUrl =
 
 const apiPublicUrl =
   process.env.API_PUBLIC_URL ??
+  process.env.CLIENT_URL ??
   process.env.RENDER_EXTERNAL_URL ??
   `http://localhost:${process.env.PORT ?? 4000}`;
 

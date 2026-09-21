@@ -13,7 +13,9 @@ server.listen(config.port, '0.0.0.0', () => {
   if (config.authTestMode) {
     console.log('AUTH_TEST_MODE is enabled (POST /api/auth/test/login).');
   }
-  if (!config.google.enabled) {
+  if (config.google.enabled) {
+    console.log(`Google SSO callback: ${config.google.callbackUrl}`);
+  } else {
     console.log('Google SSO is not configured (set GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET).');
   }
   if (!config.github.enabled) {
