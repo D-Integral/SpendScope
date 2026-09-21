@@ -1,0 +1,88 @@
+// Prisma schema for the Personal Expense Tracker
+// Database: SQLite (file-based, zero external dependencies for local run)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(cuid())
+  provider       String // "google" | "github"
+  providerUserId String // stable id from the provider
+  email          String? // may be null (e.g. GitHub can hide email)
+  displayName    String
+  avatarUrl      String?
+  createdAt      DateTime @default(now())
+
+  categories   Category[]
+  transactions Transaction[]
+  budgets      Budget[]
+  alertStates  AlertState[]
+
+  // Identity is (provider + providerUserId). Google & GitHub accounts are
+  // intentionally NOT linked (see README).
+  @@unique([provider, providerUserId])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  // Category name is unique per user.
+  @@unique([userId, name])
+}
+
+model Transaction {
+  id         String   @id @default(cuid())
+  userId     String
+  title      String
+  amount     Float // stored in the single app currency; must be > 0
+  currency   String   @default("USD")
+  date       DateTime
+  categoryId String
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+}
+
+model Budget {
+  id     String @id @default(cuid())
+  userId String
+  month  String // "YYYY-MM"
+  amount Float
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month])
+}
+
+// Tracks which budget thresholds have already fired for a given user+month
+// so alerts fire "once per threshold per month" and are not re-spammed.
+model AlertState {
+  id           String   @id @default(cuid())
+  userId       String
+  month        String // "YYYY-MM"
+  threshold    Int // 50 | 80 | 100
+  acknowledged Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month, threshold])
+}

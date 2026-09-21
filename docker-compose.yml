@@ -1,0 +1,23 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "4000:4000"
+    env_file:
+      - ./backend/.env
+    environment:
+      PORT: 4000
+      CLIENT_URL: http://localhost:8080
+      DATABASE_URL: file:./prisma/dev.db
+    volumes:
+      - sqlite-data:/app/prisma
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+
+volumes:
+  sqlite-data:
