@@ -14,6 +14,9 @@ RUN npm run build
 
 FROM node:20-alpine AS backend
 WORKDIR /backend
+# Prisma reads DATABASE_URL at generate time. Render does not inject
+# dashboard env vars into `docker build` unless marked "available at build time".
+ENV DATABASE_URL="file:./prisma/build.db"
 COPY backend/package.json backend/package-lock.json ./
 COPY backend/prisma ./prisma
 RUN npm ci
@@ -23,6 +26,7 @@ RUN npx prisma generate && npm run build
 FROM node:20-alpine
 WORKDIR /app
 ENV NODE_ENV=production
+ENV DATABASE_URL="file:/app/data/prod.db"
 COPY --from=backend /backend/node_modules ./node_modules
 COPY --from=backend /backend/dist ./dist
 COPY --from=backend /backend/prisma ./prisma

@@ -19,6 +19,7 @@ services:
         value: production
       - key: DATABASE_URL
         value: file:/app/data/prod.db
+        # Also used at runtime; Dockerfiles bake a default for `prisma generate` at build time.
       - key: CURRENCY
         value: USD
       - key: AUTH_TEST_MODE

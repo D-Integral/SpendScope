@@ -230,7 +230,9 @@ The error `"/prisma": not found` happens because Render’s Docker **build conte
 | Variable | Value |
 | --- | --- |
 | `NODE_ENV` | `production` |
-| `DATABASE_URL` | `file:/app/data/prod.db` |
+| `DATABASE_URL` | `file:/app/data/prod.db` (optional — the image already defaults to this) |
+
+Prisma needs `DATABASE_URL` while the image is **built** (`prisma generate` in `npm ci`). Render dashboard variables are **runtime-only** unless you tick “Available at Build Time”, so the Dockerfiles now set a dummy SQLite URL for the build. You still want a persistent disk at `/app/data` at runtime so data survives deploys.
 | `SESSION_SECRET` | a long random string |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | from Google Cloud Console |
 | `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | from GitHub OAuth App |
