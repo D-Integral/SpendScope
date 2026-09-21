@@ -7,8 +7,8 @@ const { app, sessionParser } = createApp();
 const server = http.createServer(app);
 initWebSocket(server, sessionParser);
 
-server.listen(config.port, () => {
-  console.log(`API listening on http://localhost:${config.port}`);
+server.listen(config.port, '0.0.0.0', () => {
+  console.log(`API listening on http://0.0.0.0:${config.port}`);
   console.log(`WebSocket path: ws://localhost:${config.port}/ws`);
   if (config.authTestMode) {
     console.log('AUTH_TEST_MODE is enabled (POST /api/auth/test/login).');

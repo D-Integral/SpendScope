@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import express from 'express';
 import cors from 'cors';
 import session from 'express-session';
@@ -52,6 +54,15 @@ export function createApp() {
   app.use('/api/budgets', budgetRoutes);
 
   app.use('/api', notFound);
+
+  const publicDir = process.env.PUBLIC_DIR ?? path.join(process.cwd(), 'public');
+  if (fs.existsSync(publicDir)) {
+    app.use(express.static(publicDir));
+    app.get('*', (_req, res) => {
+      res.sendFile(path.join(publicDir, 'index.html'));
+    });
+  }
+
   app.use(errorHandler);
 
   return { app, sessionParser };

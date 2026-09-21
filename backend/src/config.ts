@@ -7,11 +7,21 @@ function bool(value: string | undefined, fallback = false): boolean {
   return ['1', 'true', 'yes', 'on'].includes(value.toLowerCase());
 }
 
+const clientUrl =
+  process.env.CLIENT_URL ??
+  process.env.RENDER_EXTERNAL_URL ??
+  'http://localhost:5173';
+
+const apiPublicUrl =
+  process.env.API_PUBLIC_URL ??
+  process.env.RENDER_EXTERNAL_URL ??
+  `http://localhost:${process.env.PORT ?? 4000}`;
+
 export const config = {
   nodeEnv: process.env.NODE_ENV ?? 'development',
   isTest: process.env.NODE_ENV === 'test',
   port: Number(process.env.PORT ?? 4000),
-  clientUrl: process.env.CLIENT_URL ?? 'http://localhost:5173',
+  clientUrl,
   sessionSecret: process.env.SESSION_SECRET ?? 'dev-insecure-session-secret-change-me',
 
   // Single app currency for the MVP (shown explicitly in the UI).
@@ -25,7 +35,7 @@ export const config = {
     clientId: process.env.GOOGLE_CLIENT_ID ?? '',
     clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
     callbackUrl:
-      process.env.GOOGLE_CALLBACK_URL ?? 'http://localhost:4000/api/auth/google/callback',
+      process.env.GOOGLE_CALLBACK_URL ?? `${apiPublicUrl}/api/auth/google/callback`,
     get enabled() {
       return Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
     },
@@ -35,7 +45,7 @@ export const config = {
     clientId: process.env.GITHUB_CLIENT_ID ?? '',
     clientSecret: process.env.GITHUB_CLIENT_SECRET ?? '',
     callbackUrl:
-      process.env.GITHUB_CALLBACK_URL ?? 'http://localhost:4000/api/auth/github/callback',
+      process.env.GITHUB_CALLBACK_URL ?? `${apiPublicUrl}/api/auth/github/callback`,
     get enabled() {
       return Boolean(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET);
     },

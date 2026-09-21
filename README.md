@@ -198,7 +198,7 @@ A `ping` / `pong` keepalive is also supported.
 
 ## Containerization
 
-Docker Compose is included:
+Docker Compose is included (build context is `backend/` and `frontend/`):
 
 ```bash
 docker compose up --build
@@ -206,4 +206,43 @@ docker compose up --build
 
 UI: [http://localhost:8080](http://localhost:8080) · API: [http://localhost:4000](http://localhost:4000)
 
+The **root `Dockerfile`** is for hosts such as Render, where the build context is the repository root. It builds both apps and serves them from one process.
+
+```bash
+docker build -t spendscope .
+docker run -p 4000:4000 --env-file backend/.env spendscope
+```
+
 Update OAuth callback URLs if you use the Compose frontend port (`8080`) as `CLIENT_URL`.
+
+## Deploy on Render.com
+
+The error `"/prisma": not found` happens because Render’s Docker **build context is the repo root**, while `backend/Dockerfile` runs `COPY prisma ./prisma` (that folder only exists inside `backend/`).
+
+**Fix (recommended):** deploy with the **root `Dockerfile`**.
+
+1. New Web Service → this repo → **Docker**.
+2. **Dockerfile Path:** `Dockerfile` (repo root, not `backend/Dockerfile`).
+3. Leave **Root Directory** empty (repo root).
+4. Add a persistent disk: mount path `/app/data`, so SQLite survives deploys.
+5. Environment variables:
+
+| Variable | Value |
+| --- | --- |
+| `NODE_ENV` | `production` |
+| `DATABASE_URL` | `file:/app/data/prod.db` |
+| `SESSION_SECRET` | a long random string |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | from Google Cloud Console |
+| `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` | from GitHub OAuth App |
+
+You do **not** need `CLIENT_URL` or callback URL env vars: the app uses Render’s `RENDER_EXTERNAL_URL` automatically.
+
+6. After the first deploy, in Google and GitHub OAuth settings set:
+
+- Origin / Homepage: `https://<your-service>.onrender.com`
+- Google redirect: `https://<your-service>.onrender.com/api/auth/google/callback`
+- GitHub callback: `https://<your-service>.onrender.com/api/auth/github/callback`
+
+Alternatively, keep `backend/Dockerfile` and set **Root Directory** to `backend` so `prisma/` is at the context root. That image is API-only (no UI).
+
+A `render.yaml` Blueprint is included if you prefer **New → Blueprint**.

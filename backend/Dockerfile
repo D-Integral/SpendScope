@@ -1,3 +1,7 @@
+# Build context must be this directory (`docker compose` sets it to ./backend).
+# On Render the default context is the repo root, so `COPY prisma` fails with
+# "/prisma": not found. Use the root `Dockerfile` there, or set Root Directory
+# to `backend`.
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json ./

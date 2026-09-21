@@ -1,0 +1,35 @@
+# Render Blueprint — one Web Service that serves API + UI + WebSocket.
+# Dashboard: New → Blueprint → this repo.
+# After the first deploy, set Google/GitHub OAuth callback URLs to:
+#   https://<service>.onrender.com/api/auth/google/callback
+#   https://<service>.onrender.com/api/auth/github/callback
+
+services:
+  - type: web
+    name: spendscope
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    disk:
+      name: sqlite-data
+      mountPath: /app/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:/app/data/prod.db
+      - key: CURRENCY
+        value: USD
+      - key: AUTH_TEST_MODE
+        value: "false"
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
